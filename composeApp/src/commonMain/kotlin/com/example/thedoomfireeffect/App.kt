@@ -18,8 +18,13 @@ import kotlin.random.Random
 
 @Composable
 fun App() {
+    DoomCompose()
+}
 
-    var state by remember { mutableStateOf(DoomState(offset = 0.25f)) }
+@Composable
+fun DoomCompose(state: DoomState = DoomState()) {
+
+    var state by remember { mutableStateOf(state) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -30,20 +35,18 @@ fun App() {
         }
     }
 
-    DoomCompose(state)
-
+    DoomCanvas(state)
 }
 
 @Composable
-fun DoomCompose(state: DoomState) = with(state) {
-
+fun DoomCanvas(state: DoomState) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawRect(
             color = Color.Red,
-            topLeft = Offset(x = size.width * offset, y = size.height * offset),
+            topLeft = Offset(x = size.width * state.offset, y = size.height * state.offset),
             size = Size(
-                width = size.width * (1f - offset * 2f),
-                height = size.height * (1f - offset * 2f)
+                width = size.width * (1f - state.offset * 2f),
+                height = size.height * (1f - state.offset * 2f)
             )
         )
     }
@@ -56,5 +59,5 @@ fun PreviewDoomCompose() {
 }
 
 data class DoomState(
-    val offset: Float
+    val offset: Float = 0.25f
 )
