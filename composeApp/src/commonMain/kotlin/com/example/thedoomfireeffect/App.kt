@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlin.random.Random
@@ -35,12 +36,26 @@ fun DoomCompose(state: DoomState = DoomState()) {
         }
     }
 
-    DoomCanvas(state)
+    DoomCanvas(state) { width, height ->
+        println("Measurements: width: $width, height $height")
+        val arraySize = width * height
+        val pixelArray = IntArray(arraySize) { 0 }.apply {
+            createFireSource(width, height)
+        }
+        println("Pixel array: ${pixelArray.size}")
+    }
 }
 
 @Composable
-fun DoomCanvas(state: DoomState) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
+fun DoomCanvas(state: DoomState, measurements: (Int, Int) -> Unit) {
+
+    Canvas(modifier = Modifier.fillMaxSize().onSizeChanged { size ->
+        measurements(
+            size.width,
+            size.height
+        )
+    }) {
+
         drawRect(
             color = Color.Red,
             topLeft = Offset(x = size.width * state.offset, y = size.height * state.offset),
@@ -61,3 +76,12 @@ fun PreviewDoomCompose() {
 data class DoomState(
     val offset: Float = 0.25f
 )
+
+fun IntArray.createFireSource(widthPixel: Int, heightPixel: Int) {
+    val overFlowFireIndex = widthPixel * heightPixel
+
+    for (column in 0 until widthPixel) {
+        val pixelIndex = (overFlowFireIndex - widthPixel) + column
+        this[pixelIndex] = fireColors.size - 1
+    }
+}
