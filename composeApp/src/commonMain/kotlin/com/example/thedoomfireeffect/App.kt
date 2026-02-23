@@ -14,6 +14,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.thedoomfireeffect.model.CanvasMeasurements
+import com.example.thedoomfireeffect.model.WindDirection
+import com.example.thedoomfireeffect.model.heightPixel
+import com.example.thedoomfireeffect.model.pixelSize
+import com.example.thedoomfireeffect.model.tallerThanWide
+import com.example.thedoomfireeffect.model.widthPixel
+import com.example.thedoomfireeffect.theme.fireColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

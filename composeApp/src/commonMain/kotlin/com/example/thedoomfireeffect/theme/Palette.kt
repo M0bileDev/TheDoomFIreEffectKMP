@@ -1,4 +1,4 @@
-package com.example.thedoomfireeffect
+package com.example.thedoomfireeffect.theme
 
 import androidx.compose.ui.graphics.Color
 

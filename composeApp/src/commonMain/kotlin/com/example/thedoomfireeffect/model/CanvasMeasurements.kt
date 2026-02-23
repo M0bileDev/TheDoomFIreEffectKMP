@@ -1,4 +1,4 @@
-package com.example.thedoomfireeffect
+package com.example.thedoomfireeffect.model
 
 import kotlin.math.ceil
 

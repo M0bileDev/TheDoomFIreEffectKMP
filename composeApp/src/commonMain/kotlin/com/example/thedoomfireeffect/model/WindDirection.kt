@@ -1,4 +1,4 @@
-package com.example.thedoomfireeffect
+package com.example.thedoomfireeffect.model
 
 sealed interface WindDirection {
     data object Right : WindDirection
