@@ -81,6 +81,4 @@ The canvas uses `onSizeChanged` to recompute the pixel grid dimensions on every 
 
 ## 📄 License
 
-```
-MIT License — feel free to use, modify, and share.
-```
+This project is licensed under the **Apache License 2.0**
