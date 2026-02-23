@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -13,18 +14,33 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.floor
+import kotlin.random.Random
+
+private const val TAG = "DoomCompose"
 
 @Composable
 fun App() {
     DoomCompose()
+//    DoomCompose1()
 }
 
 @Composable
 fun DoomCompose(state: DoomState = DoomState()) {
 
     var state by remember { mutableStateOf(state) }
+    val scope = rememberCoroutineScope()
+    var job by remember { mutableStateOf<Job?>(null) }
 
     DoomCanvas(state) { canvasMeasurements ->
+
+        job?.cancel()
 
         //setup fire view
         val arraySize = canvasMeasurements.widthPixel * canvasMeasurements.heightPixel
@@ -32,7 +48,18 @@ fun DoomCompose(state: DoomState = DoomState()) {
             createFireSource(canvasMeasurements)
         }
         state = state.copy(pixels = pixelArray.toList())
-        println("Pixel array: ${pixelArray.size}")
+
+        job = scope.launch {
+            while (isActive) {
+                withContext(Dispatchers.Default) {
+                    delay(16)
+                    pixelArray.calculateFirePropagation(canvasMeasurements, WindDirection.None)
+                }
+                withContext(Dispatchers.Main) {
+                    state = state.copy(pixels = pixelArray.toList())
+                }
+            }
+        }
     }
 }
 
@@ -72,20 +99,24 @@ private fun DrawScope.renderFire(
     for (column in 0 until widthPixels) {
         for (row in 0 until heightPixels - 1) {
             val currentPixelIndex = column + (widthPixels * row)
-            val currentPixel = firePixels[currentPixelIndex]
-            val color = fireColors[currentPixel]
-            println("RenderFire: column: $column, row: $row color: $color")
-            drawRect(
-                topLeft = Offset(
-                    x = (column * pixelSize).toFloat(),
-                    y = (row * pixelSize).toFloat()
-                ),
-                size = Size(
-                    width = pixelSize.toFloat(),
-                    height = pixelSize.toFloat()
-                ),
-                color = color
-            )
+            try {
+                val currentPixel = firePixels[currentPixelIndex]
+                val color = fireColors[currentPixel]
+                drawRect(
+                    topLeft = Offset(
+                        x = (column * pixelSize).toFloat(),
+                        y = (row * pixelSize).toFloat()
+                    ),
+                    size = Size(
+                        width = pixelSize.toFloat(),
+                        height = pixelSize.toFloat()
+                    ),
+                    color = color
+                )
+            } catch (_: Exception) {
+
+            }
+
         }
     }
 }
@@ -101,13 +132,61 @@ data class DoomState(
 )
 
 fun IntArray.createFireSource(canvas: CanvasMeasurements) {
+//    println("$TAG createFireSource canvas: width:${canvas.width} height:${canvas.height}")
     val overFlowFireIndex = canvas.widthPixel * canvas.heightPixel
 
-    for(fireColor in 0 until fireColors.lastIndex){
+    for (fireColor in 0 until fireColors.lastIndex) {
         for (column in 0 until canvas.widthPixel) {
-            val pixelIndex = (overFlowFireIndex - canvas.widthPixel-canvas.widthPixel*fireColor) + column
+            val pixelIndex =
+                (overFlowFireIndex - canvas.widthPixel - canvas.widthPixel * fireColor) + column
             this[pixelIndex] = fireColors.lastIndex - fireColor
         }
     }
 
+//    for (column in 0 until canvas.widthPixel) {
+//        val pixelIndex = (overFlowFireIndex - canvas.widthPixel) + column
+//        this[pixelIndex] = fireColors.size - 1
+//    }
+}
+
+private fun IntArray.calculateFirePropagation(
+    canvasMeasurements: CanvasMeasurements,
+    windDirection: WindDirection
+) {
+//    println("$TAG calculateFirePropagation canvas: width:${canvasMeasurements.width} height:${canvasMeasurements.height}")
+    for (column in 0 until canvasMeasurements.widthPixel) {
+        for (row in 1 until canvasMeasurements.heightPixel) {
+            val currentPixelIndex = column + (canvasMeasurements.widthPixel * row)
+            updateFireIntensityPerPixel(
+                currentPixelIndex,
+                canvasMeasurements,
+                windDirection
+            )
+        }
+    }
+}
+
+private fun IntArray.updateFireIntensityPerPixel(
+    currentPixelIndex: Int,
+    measurements: CanvasMeasurements,
+    windDirection: WindDirection
+) {
+    val bellowPixelIndex = currentPixelIndex + measurements.widthPixel
+    if (bellowPixelIndex >= measurements.widthPixel * measurements.heightPixel) return
+
+    val offset = if (measurements.tallerThanWide) 2 else 3
+    val decay = floor(Random.nextDouble() * offset).toInt()
+    val bellowPixelFireIntensity = this[bellowPixelIndex]
+    val newFireIntensity = when {
+        bellowPixelFireIntensity - decay >= 0 -> bellowPixelFireIntensity - decay
+        else -> 0
+    }
+
+    val newPosition = when (windDirection) {
+        WindDirection.Right -> if (currentPixelIndex - decay >= 0) currentPixelIndex - decay else currentPixelIndex
+        WindDirection.Left -> if (currentPixelIndex + decay >= 0) currentPixelIndex + decay else currentPixelIndex
+        WindDirection.None -> currentPixelIndex
+    }
+
+    this[newPosition] = newFireIntensity
 }
