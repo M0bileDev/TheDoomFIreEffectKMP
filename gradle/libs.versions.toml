@@ -15,8 +15,8 @@ junit = "4.13.2"
 kotlin = "2.3.10"
 kotlinx-coroutines = "1.10.2"
 material3 = "1.10.0-alpha05"
-material = "1.10.0"
-composeBom = "2026.01.00"
+material = "1.13.0"
+composeBom = "2026.02.00"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
