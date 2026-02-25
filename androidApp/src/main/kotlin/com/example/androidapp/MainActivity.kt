@@ -1,4 +1,4 @@
-package com.example.thedoomfireeffect
+package com.example.androidapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
