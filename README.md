@@ -57,6 +57,7 @@ The canvas uses `onSizeChanged` to recompute the pixel grid dimensions on every 
 - IntelliJ IDEA (for Desktop/JVM targets)
 - Kotlin 1.9+
 - Compose Multiplatform
+- AGP 9.x
 
 ### Run on Android
 
